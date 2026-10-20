@@ -40,10 +40,10 @@ export function Start() {
       }>
       <View style={styles.hero}>
         <AppText variant="display" style={styles.center}>
-          맞춤형 서울챌린지
+          MY서울루틴
         </AppText>
         <AppText color="slate" style={styles.center}>
-          하루 5분, 서울에서 해보는 작은 챌린지
+          Maru · 하루 5분, 서울에서 해보는 작은 루틴
         </AppText>
       </View>
     </Screen>
