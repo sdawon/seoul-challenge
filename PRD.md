@@ -170,8 +170,9 @@ flowchart LR
 
 ### F2. AI 미션 추천
 
-- 함수: `recommend-missions`. 호출 시점: 온보딩 완료, 당일(KST) 첫 홈 진입, '다른 미션 보기'(하루 1회).
-- 입력: 프로필, 최근 14일 `user_missions`, 시드 36개, 해당 구의 진행 중 문화행사 최대 10건.
+- 함수: `recommend-missions`. 호출 시점: 온보딩 완료, 당일(KST) 첫 홈 진입, '다른 미션 보기'(하루 1회, 사유 `skip_reason` 선택: `time_short`·`burden`·`not_interested`).
+- 입력: 프로필, 최근 14일 `user_missions`, 시드 36개, 해당 구의 진행 중 문화행사 최대 10건, 생활권 장소·미션 원형(온톨로지).
+- 구조: 규칙으로 후보를 거르고 → AI가 허용된 후보 안에서 고르고 문장을 쓰고 → 후보 사실과 대조해 어긋나면 규칙 문장으로 대체한다. 상세는 [docs/RECOMMENDATION.md](./docs/RECOMMENDATION.md).
 - 출력: 일일 3개 + 주간 1개. 각 미션 필드
 
 | 필드 | 타입 | 규칙 |
@@ -186,7 +187,8 @@ flowchart LR
 
 - 난이도 정의: 1 = 5분, 집 반경 100m / 2 = 15분, 동네 / 3 = 30분, 공공장소 방문 / 4 = 1시간+, 행사 참여 / 5 = 타인과 함께하는 활동.
 - 신규 사용자 난이도 1~2. 주간 미션은 프로필 난이도 +1.
-- 결과는 `(user_id, KST 날짜)` 기준 캐시. 응답 15초 초과 또는 형식 오류 시 시드에서 카테고리 일치 미션으로 대체.
+- 결과는 `(user_id, KST 날짜)` 기준 캐시. AI 응답 25초 초과·형식 오류·대조 불일치 시 같은 후보의 규칙 문장으로, 생활권 후보가 3개 미만이면 시드에서 카테고리 일치 미션으로 대체.
+- '시간 부족' 사유는 3일 동안 하루 가능 시간을 한 단계 낮춰 추천한다(30→15→5분).
 
 ### F3. 미션 선택
 
@@ -382,7 +384,8 @@ Storage: 버킷 `verifications`(private, JPEG, 5MB), 본인 폴더 업로드, �
 
 | 함수 | 입력 | 출력 | 호출 시점 |
 | --- | --- | --- | --- |
-| `recommend-missions` | user_id | 미션 4개 | F2 |
+| `recommend-missions` | user_id, refresh, skip_reason | 미션 4개 | F2 |
+| `preview-recommendation` | profile, history, feedback, events, ai | 미션 4개 + 후보·제외 이유·대조 결과 (저장 안 함) | 피드백·시연 비교 |
 | `verify-mission` | user_mission_id, photo_path, text | ai_result, message | F4 |
 | `moderate-comment` | comment_id 또는 relay_id | status | 댓글·릴레이 insert 직후 (F10에서 relay_id 추가) |
 | `write-weekly-letter` | — (호출자 기준 지난주) | body, source | F13, 월요일 첫 S3·S7 진입 |

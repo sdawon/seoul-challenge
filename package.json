@@ -46,7 +46,9 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "seed:build": "python scripts/build-seed.py"
+    "seed:build": "python scripts/build-seed.py",
+    "test:recommend": "node --no-warnings --test supabase/functions/_shared/recommend/engine.test.ts",
+    "evidence:recommend": "node --no-warnings supabase/functions/_shared/recommend/evidence.ts"
   },
   "private": true
 }

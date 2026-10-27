@@ -31,6 +31,9 @@ async function invoke<T>(name: string, body: object): Promise<T> {
 /** 'ai' = 생성형 AI 결과, 'rule' = AI를 쓸 수 없을 때의 규칙 기반 대체 */
 export type JudgedBy = 'ai' | 'rule';
 
+/** '다른 미션 보기' 사유: 시간 부족 / 부담 / 관심 없음 */
+export type SkipReason = 'time_short' | 'burden' | 'not_interested';
+
 export type Recommendation = { daily: Mission[]; weekly: Mission | null; source: JudgedBy };
 export type JudgeResult = {
   result: 'pass' | 'retry' | 'privacy';
@@ -41,8 +44,9 @@ export type JudgeResult = {
 };
 
 export const Functions = {
-  /** F2 오늘의 추천. refresh = '다른 미션 보기' (하루 1회) */
-  recommendMissions: (refresh = false) => invoke<Recommendation>('recommend-missions', { refresh }),
+  /** F2 오늘의 추천. refresh = '다른 미션 보기' (하루 1회), skipReason = 바꾸는 이유(다음 추천 조건에 반영) */
+  recommendMissions: (refresh = false, skipReason?: SkipReason) =>
+    invoke<Recommendation>('recommend-missions', { refresh, skip_reason: skipReason }),
   /** F4 사진 판정 + 완료·출석·보상 처리 */
   verifyMission: (verificationId: string) => invoke<JudgeResult>('verify-mission', { verification_id: verificationId }),
   /** F6 댓글 검수 */
